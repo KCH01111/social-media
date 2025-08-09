@@ -1,4 +1,3 @@
-# settings.py
 import os
 import re
 from typing import Dict, Any

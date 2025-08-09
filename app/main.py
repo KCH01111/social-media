@@ -1,4 +1,3 @@
-# main.py (minimal change)
 import os, asyncio
 from dotenv import load_dotenv
 load_dotenv()
