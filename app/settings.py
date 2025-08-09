@@ -1,3 +1,4 @@
+# app/settings.py
 import os
 import re
 from typing import Dict, Any
@@ -8,7 +9,7 @@ if not JWT_SECRET:
     raise ValueError("JWT_SECRET environment variable is required")
 
 JWT_CONFIG: Dict[str, Any] = {
-    "algorithm": "HS256",
+    "algorithm": os.getenv("JWT_ALGO", "HS256"),
     "exp_minutes": int(os.getenv("JWT_EXP_MINUTES", "60")),
     "issuer": os.getenv("JWT_ISSUER", "social-media-api"),
     "required_claims": ["exp", "iat", "sub", "iss"],
@@ -22,16 +23,17 @@ PASSWORD_CONFIG: Dict[str, Any] = {
 }
 
 USERNAME_CONFIG: Dict[str, Any] = {
-    "min_length": 3,
-    "max_length": 30,
+    "min_length": int(os.getenv("USERNAME_MIN_LEN", "3")),
+    "max_length": int(os.getenv("USERNAME_MAX_LEN", "30")),
     "regex": re.compile(r"^\w{3,30}$"),
 }
 
 # -------------- Elasticsearch --------------
 ES_CONFIG: Dict[str, Any] = {
-    "user_index": "users",
-    "post_index": "posts",
-    "default_role": "user",
+    "url": os.getenv("ES_URL", "http://localhost:9200"),
+    "user_index": os.getenv("ES_USER_INDEX", "users"),
+    "post_index": os.getenv("ES_POST_INDEX", "posts"),
+    "default_role": os.getenv("ES_DEFAULT_ROLE", "user"),
 }
 
 # -------------- HTTP / CORS --------------
@@ -42,11 +44,9 @@ HTTP_CONFIG: Dict[str, Any] = {
         "Content-Type": "application/json; charset=utf-8",
         "X-Content-Type-Options": "nosniff",
         "X-Frame-Options": "DENY",
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": os.getenv("CORS_ALLOWED_ORIGINS", "*"),
         "Access-Control-Allow-Methods": HTTP_METHODS,
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        # If you ever use cookies in browsers, also set:
-        # "Access-Control-Allow-Credentials": "true",
     },
     "error_content_type": "application/json; charset=utf-8",
 }
@@ -54,22 +54,17 @@ HTTP_CONFIG: Dict[str, Any] = {
 # -------------- Error Messages --------------
 ERROR_MESSAGES: Dict[str, Any] = {
     "invalid_json": "Invalid JSON format",
-
-    # Auth-specific validation (for register/login)
     "auth_validation_error": {
         "username": f"Username must be {USERNAME_CONFIG['min_length']}-{USERNAME_CONFIG['max_length']} chars: letters, numbers, underscores only",
         "password": f"Password must be {PASSWORD_CONFIG['min_length']}-{PASSWORD_CONFIG['max_length']} characters",
         "credentials": "Username and password required",
     },
-
     "username_taken": "Username already taken",
     "invalid_credentials": "Invalid username or password",
     "missing_token": "Bearer token required",
     "invalid_token": "Invalid or expired token",
     "registration_failed": "Registration failed. Please try again.",
     "login_failed": "Login failed. Please try again.",
-
-    # Common / generic
     "invalid_username": "Username cannot be empty",
     "user_not_found": "User not found",
     "fetch_error": "Could not retrieve user profile",
@@ -98,10 +93,10 @@ USER_PROFILE_CONFIG = {
 }
 
 PAGINATION_CONFIG = {
-    "default_page": 1,
-    "min_page_size": 1,
-    "default_page_size": 20,
-    "max_page_size": 100,
+    "default_page": int(os.getenv("PAGINATION_DEFAULT_PAGE", "1")),
+    "min_page_size": int(os.getenv("PAGINATION_MIN_SIZE", "1")),
+    "default_page_size": int(os.getenv("PAGINATION_DEFAULT_SIZE", "20")),
+    "max_page_size": int(os.getenv("PAGINATION_MAX_SIZE", "100")),
 }
 
 USER_STATS_DEFAULTS = {
@@ -112,7 +107,6 @@ USER_STATS_DEFAULTS = {
 
 USER_ROLES = ["user", "admin"]
 
-# Profile-specific validation messages
 ERROR_MESSAGES["profile_validation_error"] = {
     "display_name": f"display_name must be <= {USER_PROFILE_CONFIG['display_name_max_length']} characters",
     "bio": f"bio must be <= {USER_PROFILE_CONFIG['bio_max_length']} characters",
@@ -123,14 +117,16 @@ ERROR_MESSAGES["profile_validation_error"] = {
 
 # -------------- Posts config --------------
 POSTS_CONFIG = {
-    "text_max_len": 2000,
-    "tags_max": 10,
+    "text_max_len": int(os.getenv("TEXT_MAX_LEN", "2000")),
+    "tags_max": int(os.getenv("TAGS_MAX", "10")),
 }
+
+# Expose simple constants for handlers that import them directly
+POSTS_INDEX = ES_CONFIG["post_index"]
+TEXT_MAX_LEN = POSTS_CONFIG["text_max_len"]
+TAGS_MAX = POSTS_CONFIG["tags_max"]
 
 # -------------- Tornado Application settings --------------
 TORNADO_SETTINGS: Dict[str, Any] = {
-    # Add more Tornado Application settings as needed:
-    # "debug": os.getenv("DEBUG", "true").lower() == "true",
     "max_body_size": 5 * 1024 * 1024,  # 5 MB
-    # "default_handler_class": Custom404Handler,  # if you add one
 }
