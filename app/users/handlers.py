@@ -44,11 +44,9 @@ async def _is_admin(handler: tornado.web.RequestHandler) -> bool:
         return False
 
 
-# Base User Handler (adds CORS methods list)
 class BaseUserHandler(BaseHandler):
     def set_default_headers(self):
         super().set_default_headers()
-        # Ensure methods list contains all used verbs
         self.set_header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
 
 
