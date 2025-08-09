@@ -114,7 +114,7 @@ USER_STATS_DEFAULTS = {
 
 USER_ROLES = ["user", "admin"]
 
-# Profile-specific validation messages (kept separate from auth)
+# Profile-specific validation messages 
 ERROR_MESSAGES["profile_validation_error"] = {
     "display_name": f"display_name must be <= {USER_PROFILE_CONFIG['display_name_max_length']} characters",
     "bio": f"bio must be <= {USER_PROFILE_CONFIG['bio_max_length']} characters",
@@ -123,7 +123,7 @@ ERROR_MESSAGES["profile_validation_error"] = {
     "role": f"role must be one of: {', '.join(USER_ROLES)}",
 }
 
-# Optional app settings (if you want to pass to Application(...))
+# Optional app settings
 APP_SETTINGS: Dict[str, Any] = {
     # "xsrf_cookies": False,  # enable True only if using cookie-based forms
     "max_body_size": 5 * 1024 * 1024,  # 5 MB
