@@ -12,7 +12,7 @@ from tornado.ioloop import IOLoop
 
 from services.es import es
 from elasticsearch import ConflictError
-from configurations import (
+from app.settings import (
     JWT_SECRET,
     JWT_CONFIG,
     PASSWORD_CONFIG,

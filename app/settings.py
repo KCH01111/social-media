@@ -1,8 +1,9 @@
+# settings.py
 import os
 import re
 from typing import Dict, Any
 
-# JWT Configuration
+# ---------------- JWT ----------------
 JWT_SECRET = os.getenv("JWT_SECRET")
 if not JWT_SECRET:
     raise ValueError("JWT_SECRET environment variable is required")
@@ -14,7 +15,7 @@ JWT_CONFIG: Dict[str, Any] = {
     "required_claims": ["exp", "iat", "sub", "iss"],
 }
 
-# Password & Username
+# -------- Password & Username --------
 PASSWORD_CONFIG: Dict[str, Any] = {
     "min_length": int(os.getenv("PASSWORD_MIN_LEN", "8")),
     "max_length": int(os.getenv("PASSWORD_MAX_LEN", "100")),
@@ -27,15 +28,14 @@ USERNAME_CONFIG: Dict[str, Any] = {
     "regex": re.compile(r"^\w{3,30}$"),
 }
 
-
-# Elasticsearch
-
+# -------------- Elasticsearch --------------
 ES_CONFIG: Dict[str, Any] = {
     "user_index": "users",
+    "post_index": "posts",
     "default_role": "user",
 }
 
-# HTTP / CORS
+# -------------- HTTP / CORS --------------
 HTTP_METHODS = "GET, POST, PATCH, DELETE, OPTIONS"
 
 HTTP_CONFIG: Dict[str, Any] = {
@@ -52,8 +52,7 @@ HTTP_CONFIG: Dict[str, Any] = {
     "error_content_type": "application/json; charset=utf-8",
 }
 
-# Error Messages
-# 
+# -------------- Error Messages --------------
 ERROR_MESSAGES: Dict[str, Any] = {
     "invalid_json": "Invalid JSON format",
 
@@ -84,16 +83,16 @@ ERROR_MESSAGES: Dict[str, Any] = {
     "forbidden": "Admin only",
 }
 
-# User profile / pagination / stats
+# -------------- User profile / pagination / stats --------------
 USER_PROFILE_CONFIG = {
     "bio_max_length": int(os.getenv("BIO_MAX_LENGTH", "280")),
     "display_name_max_length": int(os.getenv("DISPLAY_NAME_MAX_LENGTH", "50")),
     "url_pattern": re.compile(
-        r"^https?://"                         # allow http or https
-        r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,63}\.?|"  # domain
-        r"localhost|"                         # localhost
-        r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # IPv4
-        r"(?::\d+)?"                          # optional port
+        r"^https?://"
+        r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,63}\.?|"
+        r"localhost|"
+        r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"
+        r"(?::\d+)?"
         r"(?:/?|[/?]\S+)$",
         re.IGNORECASE,
     ),
@@ -111,15 +110,10 @@ USER_STATS_DEFAULTS = {
     "followers_count": 0,
     "following_count": 0,
 }
-POSTS_INDEX = "posts"
-
-TEXT_MAX_LEN = 2000
-
-TAGS_MAX = 10
 
 USER_ROLES = ["user", "admin"]
 
-# Profile-specific validation messages 
+# Profile-specific validation messages
 ERROR_MESSAGES["profile_validation_error"] = {
     "display_name": f"display_name must be <= {USER_PROFILE_CONFIG['display_name_max_length']} characters",
     "bio": f"bio must be <= {USER_PROFILE_CONFIG['bio_max_length']} characters",
@@ -128,8 +122,16 @@ ERROR_MESSAGES["profile_validation_error"] = {
     "role": f"role must be one of: {', '.join(USER_ROLES)}",
 }
 
-# Optional app settings
-APP_SETTINGS: Dict[str, Any] = {
-    # "xsrf_cookies": False,  # enable True only if using cookie-based forms
+# -------------- Posts config --------------
+POSTS_CONFIG = {
+    "text_max_len": 2000,
+    "tags_max": 10,
+}
+
+# -------------- Tornado Application settings --------------
+TORNADO_SETTINGS: Dict[str, Any] = {
+    # Add more Tornado Application settings as needed:
+    # "debug": os.getenv("DEBUG", "true").lower() == "true",
     "max_body_size": 5 * 1024 * 1024,  # 5 MB
+    # "default_handler_class": Custom404Handler,  # if you add one
 }

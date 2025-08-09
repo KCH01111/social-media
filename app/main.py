@@ -1,15 +1,11 @@
-# main.py
-
-import os
+# main.py (minimal change)
+import os, asyncio
 from dotenv import load_dotenv
-
-# Load .env file BEFORE importing anything that uses environment variables
 load_dotenv()
 
-import tornado.ioloop
 import tornado.web
-from auth.handlers import RegisterHandler, LoginHandler
-from users.handlers import UserDetailHandler, MeHandler, UsersListHandler, UserSearchHandler, UserStatsHandler, AdminUserHandler
+from app.handlers.auth import RegisterHandler, LoginHandler
+
 
 PORT = int(os.environ.get("PORT", 8000))
 DEBUG = os.environ.get("DEBUG", "true").lower() == "true"
@@ -23,16 +19,14 @@ def make_app():
         (r"/health", HealthCheckHandler),
         (r"/auth/register", RegisterHandler),
         (r"/auth/login", LoginHandler),
-        (r"/users",UsersListHandler),
-        (r"/users/me",MeHandler),
-        (r"/users/search",UserSearchHandler),
-        (r"/users/([a-z0-9_]{3,30})/stats",UserStatsHandler),
-        (r"/users/([a-z0-9_]{3,30})",UserDetailHandler),
-        (r"/admin/users/([a-z0-9_]{3,30})", AdminUserHandler),
+
     ], debug=DEBUG)
 
-if __name__ == "__main__":
+async def main():
     app = make_app()
     app.listen(PORT)
     print(f"Tornado server running on http://localhost:{PORT} (debug={DEBUG})")
-    tornado.ioloop.IOLoop.current().start()
+    await asyncio.Event().wait() 
+
+if __name__ == "__main__":
+    asyncio.run(main())
