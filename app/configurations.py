@@ -69,7 +69,7 @@ USER_PROFILE_CONFIG = {
     "bio_max_length": int(os.getenv("BIO_MAX_LENGTH", "280")),
     "display_name_max_length": int(os.getenv("DISPLAY_NAME_MAX_LENGTH", "50")),
     "url_pattern": re.compile(
-        r'^https?://'
+        r'^http?://'
         r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,63}\.?|'
         r'localhost|'
         r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
