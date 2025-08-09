@@ -7,6 +7,7 @@ from typing import Dict, Any, Optional
 import bcrypt
 import jwt
 import tornado.web
+from tornado.escape import json_decode
 from tornado.ioloop import IOLoop
 
 from services.es import es
@@ -31,7 +32,6 @@ async def cpu_io(fn, *a, **kw):
     return await IOLoop.current().run_in_executor(None, lambda: fn(*a, **kw))
 
 
-# Base Handler
 class BaseHandler(tornado.web.RequestHandler):
     """
     Common JSON/CORS/error/JWT utilities.
@@ -39,7 +39,6 @@ class BaseHandler(tornado.web.RequestHandler):
     - write_error(): centralized JSON error envelope
     - set_default_headers()/options(): CORS
     """
-
     def set_default_headers(self):
         for header, value in HTTP_CONFIG["default_headers"].items():
             self.set_header(header, value)
@@ -49,9 +48,8 @@ class BaseHandler(tornado.web.RequestHandler):
         ctype = self.request.headers.get("Content-Type", "")
         if ctype.startswith("application/json"):
             try:
-                body = self.request.body.decode("utf-8") if self.request.body else ""
-                self.json = json.loads(body) if body else {}
-            except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                self.json = json_decode(self.request.body or b"{}")
+            except Exception as e:
                 raise tornado.web.HTTPError(400, reason="INVALID_JSON") from e
 
         self.current_user = None
@@ -102,7 +100,7 @@ class BaseHandler(tornado.web.RequestHandler):
             "REGISTRATION_FAILED": ("REGISTRATION_FAILED", ERROR_MESSAGES["registration_failed"]),
             "LOGIN_FAILED": ("LOGIN_FAILED", ERROR_MESSAGES["login_failed"]),
             "FORBIDDEN": ("FORBIDDEN", ERROR_MESSAGES.get("forbidden", "Forbidden")),
-            "VALIDATION_ERROR": ("VALIDATION_ERROR", ERROR_MESSAGES.get("validation_error", "Validation error")),
+            "VALIDATION_ERROR": ("VALIDATION_ERROR", ERROR_MESSAGES.get("auth_validation_error", "Validation error")),
             "USER_NOT_FOUND": ("USER_NOT_FOUND", ERROR_MESSAGES.get("user_not_found", "User not found")),
         }
         code, message = map_simple.get(reason, ("UNHANDLED_ERROR", default_msg))
@@ -113,19 +111,23 @@ class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
         return self.current_user
 
+    def on_finish(self):
+        logger.info("%s %s -> %s", self.request.method, self.request.uri, self.get_status())
 
-# Auth helpers
+
 def validate_credentials_format(username: str, password: str) -> Optional[str]:
+    """Validate username and password format."""
     if not username or not password:
-        return ERROR_MESSAGES["validation_error"]["credentials"]
+        return ERROR_MESSAGES["auth_validation_error"]["credentials"]
     if not USERNAME_CONFIG["regex"].match(username):
-        return ERROR_MESSAGES["validation_error"]["username"]
+        return ERROR_MESSAGES["auth_validation_error"]["username"]
     if not (PASSWORD_CONFIG["min_length"] <= len(password) <= PASSWORD_CONFIG["max_length"]):
-        return ERROR_MESSAGES["validation_error"]["password"]
+        return ERROR_MESSAGES["auth_validation_error"]["password"]
     return None
 
 
 def generate_jwt_token(user_id: str, username: str, role: str) -> Dict[str, Any]:
+    """Generate JWT token for a user."""
     now = datetime.datetime.now(datetime.timezone.utc)
     expiry = now + datetime.timedelta(minutes=JWT_CONFIG["exp_minutes"])
     payload = {
@@ -157,7 +159,6 @@ def jwt_required(handler_method):
     return wrapper
 
 
-# Handlers
 class RegisterHandler(BaseHandler):
     """Handle user registration."""
     async def post(self):
@@ -215,7 +216,7 @@ class LoginHandler(BaseHandler):
         password = data.get("password", "")
 
         if not username or not password:
-            raise tornado.web.HTTPError(401, reason="INVALID_CREDENTIALS")
+            raise tornado.web.HTTPError(400, reason="VALIDATION_ERROR")
 
         try:
             resp = await es_io(es.get, index=ES_CONFIG["user_index"], id=username)

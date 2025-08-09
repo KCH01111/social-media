@@ -111,6 +111,11 @@ USER_STATS_DEFAULTS = {
     "followers_count": 0,
     "following_count": 0,
 }
+POSTS_INDEX = "posts"
+
+TEXT_MAX_LEN = 2000
+
+TAGS_MAX = 10
 
 USER_ROLES = ["user", "admin"]
 
