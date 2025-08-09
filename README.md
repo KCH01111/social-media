@@ -1,6 +1,3 @@
-Here’s your **updated README** based on your smaller v1 scope (Auth + Users + Posts only).
-I’ve trimmed out likes, follows, comments, OAuth, etc. so it stays realistic for a first project but still looks professional.
-
 ---
 
 # 🧠 Tornado + Elasticsearch Social Media Backend (Minimal v1)
@@ -81,34 +78,29 @@ social_media_backend/
 
 ### 1️⃣ Install Dependencies
 
-```bash
 pip install tornado elasticsearch pyjwt bcrypt python-dotenv
-```
+
 
 ### 2️⃣ Configure Environment
 
-```bash
 cp .env.example .env
 # Edit:
 # JWT_SECRET=your_secret
 # ELASTICSEARCH_URL=http://localhost:9200
-```
 
 ### 3️⃣ Run Elasticsearch (Docker)
 
-```bash
 docker run -d --name es -p 9200:9200 \
   -e "discovery.type=single-node" \
   docker.elastic.co/elasticsearch/elasticsearch:8.8.0
-```
+
 
 ### 4️⃣ Start Server
 
-```bash
 python app/main.py
 ```
 
----
+
 
 ## 📚 API Endpoints (v1)
 
@@ -148,32 +140,3 @@ python app/main.py
 ## 📄 License
 
 MIT License
-
----
-
-If you want, I can also make you a **new `main.py`** that wires in posts routes so your README matches exactly what runs.
-Do you want me to prepare that?
-
-Example of what ES return in search:
-
-
-user_search = {
-    "took": 2,
-    "timed_out": False,
-    "_shards": {...},
-    "hits": {
-        "total": {"value": 1, "relation": "eq"},
-        "max_score": 1.0,
-        "hits": [
-            {
-                "_index": "users",
-                "_id": "abc123",
-                "_score": 1.0,
-                "_source": {
-                    "username": "testuser",
-                    "password": "$2b$12$..."
-                }
-            }
-        ]
-    }
-}
