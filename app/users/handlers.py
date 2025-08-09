@@ -21,9 +21,11 @@ from configurations import (
 logger = logging.getLogger(__name__)
 
 def _valid_url(url: Optional[str]) -> bool:
+    """Check if a given string is a valid URL based on USER_PROFILE_CONFIG['url_pattern'] regex."""
     return True if not url else bool(USER_PROFILE_CONFIG["url_pattern"].match(url))
 
 def _public_user_view(src: Dict[str, Any]) -> Dict[str, Any]:
+    """Return a sanitized public view of a user document from Elasticsearch."""
     return {
         "username": src.get("username"),
         "display_name": src.get("display_name", src.get("username")),
@@ -34,7 +36,7 @@ def _public_user_view(src: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 async def _is_admin(handler: tornado.web.RequestHandler) -> bool:
-    """Check role from ES (jwt payload may not include role)."""
+    """Check if the current user has admin privileges by looking up role in Elasticsearch."""
     try:
         doc = es.get(index=ES_CONFIG["user_index"], id=handler.current_username)["_source"]
         return doc.get("role", ES_CONFIG["default_role"]) == "admin"
@@ -42,14 +44,16 @@ async def _is_admin(handler: tornado.web.RequestHandler) -> bool:
         return False
 
 class BaseUserHandler(BaseAuthHandler):
-    """Inherit CORS + JSON/error helpers from BaseAuthHandler (auth/handlers.py)."""
+    """Base user handler with extended CORS support for GET, PATCH, DELETE."""
     def set_default_headers(self):
         super().set_default_headers()
         self.set_header("Access-Control-Allow-Methods", "GET, PATCH, DELETE, OPTIONS")
     def options(self, *args, **kwargs):
+        """Handle preflight OPTIONS request for CORS."""
         self.set_status(204); self.finish()
 
 class UserDetailHandler(BaseUserHandler):
+    """Handler for retrieving public details of a specific user by username."""
     async def get(self, username: str):
         username = unquote(username).strip().lower()
         if not username:
@@ -66,8 +70,11 @@ class UserDetailHandler(BaseUserHandler):
             self.write_error_response(500, "FETCH_ERROR", ERROR_MESSAGES["fetch_error"])
 
 class MeHandler(BaseUserHandler):
+    """Handler for viewing, updating, or deactivating the currently authenticated user's profile."""
+
     @jwt_required
     async def get(self):
+        """Retrieve the current user's profile including private fields."""
         try:
             doc = es.get(index=ES_CONFIG["user_index"], id=self.current_username)["_source"]
             resp = _public_user_view(doc)
@@ -86,6 +93,7 @@ class MeHandler(BaseUserHandler):
 
     @jwt_required
     async def patch(self):
+        """Update the current user's profile fields such as display_name, bio, avatar_url, and email."""
         data = self.parse_json_body()
         if data is None:
             self.write_error_response(400, "INVALID_JSON", ERROR_MESSAGES["invalid_json"]); return
@@ -144,7 +152,7 @@ class MeHandler(BaseUserHandler):
 
     @jwt_required
     async def delete(self):
-        """Soft delete (deactivate) own account."""
+        """Deactivate (soft delete) the current user's account."""
         try:
             es.update(
                 index=ES_CONFIG["user_index"],
@@ -160,11 +168,13 @@ class MeHandler(BaseUserHandler):
             self.write_error_response(500, "DELETE_ERROR", ERROR_MESSAGES["delete_error"])
 
 class UsersListHandler(BaseUserHandler):
+    """Handler for listing all users with optional filters and pagination."""
     def set_default_headers(self):
         super().set_default_headers()
         self.set_header("Access-Control-Allow-Methods", "GET, OPTIONS")
 
     async def get(self):
+        """List users with pagination, active filter, and optional search query."""
         page = max(PAGINATION_CONFIG["default_page"], 
                   int(self.get_argument("page", str(PAGINATION_CONFIG["default_page"])) or PAGINATION_CONFIG["default_page"]))
         size = min(PAGINATION_CONFIG["max_page_size"], 
@@ -199,11 +209,13 @@ class UsersListHandler(BaseUserHandler):
             self.write_error_response(500, "LIST_ERROR", "Could not list users")
 
 class UserSearchHandler(BaseUserHandler):
+    """Handler for searching active users by username or display_name."""
     def set_default_headers(self):
         super().set_default_headers()
         self.set_header("Access-Control-Allow-Methods", "GET, OPTIONS")
 
     async def get(self):
+        """Search users using phrase prefix and fuzzy matching with pagination."""
         q = self.get_argument("q", "").strip()
         page = max(PAGINATION_CONFIG["default_page"], 
                   int(self.get_argument("page", str(PAGINATION_CONFIG["default_page"])) or PAGINATION_CONFIG["default_page"]))
@@ -261,11 +273,13 @@ class UserSearchHandler(BaseUserHandler):
             self.write_error_response(500, "SEARCH_ERROR", ERROR_MESSAGES["search_error"])
 
 class UserStatsHandler(BaseUserHandler):
+    """Handler for retrieving a user's public and optionally private stats."""
     def set_default_headers(self):
         super().set_default_headers()
         self.set_header("Access-Control-Allow-Methods", "GET, OPTIONS")
 
     async def get(self, username: str):
+        """Retrieve post/follow counts and, for self, private stats like profile views."""
         username = unquote(username).strip().lower()
         if not username:
             self.write_error_response(400, "INVALID_USERNAME", ERROR_MESSAGES["invalid_username"]); return
@@ -279,7 +293,6 @@ class UserStatsHandler(BaseUserHandler):
 
         stats = u.get("stats", USER_STATS_DEFAULTS.copy())
 
-        # real-time posts count
         try:
             cnt = es.count(index="posts", query={"term": {"author_id": username}})
             stats["posts_count"] = cnt["count"]
@@ -296,8 +309,11 @@ class UserStatsHandler(BaseUserHandler):
         self.write(resp)
 
 class AdminUserHandler(BaseUserHandler):
+    """Handler for admin-level user management: update and deactivate accounts."""
+
     @jwt_required
     async def patch(self, username: str):
+        """Allow admin to update user fields including role and activation status."""
         if not await _is_admin(self):
             self.write_error_response(403, "FORBIDDEN", ERROR_MESSAGES["forbidden"]); return
 
@@ -334,6 +350,7 @@ class AdminUserHandler(BaseUserHandler):
 
     @jwt_required
     async def delete(self, username: str):
+        """Allow admin to deactivate (soft delete) a user account."""
         if not await _is_admin(self):
             self.write_error_response(403, "FORBIDDEN", ERROR_MESSAGES["forbidden"]); return
 
