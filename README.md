@@ -1,7 +1,7 @@
 # 🧠 Tornado + Elasticsearch Social Media Backend (Minimal v1)
 
 A **lean, production-style backend** for a social media app — built with **Tornado** and **Elasticsearch**.
-This version focuses on **core user features** only: authentication and user profiles.
+This version focuses on **core user features**: authentication, user profiles, listing, and search.
 
 ---
 
@@ -12,18 +12,18 @@ This version focuses on **core user features** only: authentication and user pro
 * [x] Password hashing with bcrypt
 * [x] Token verification middleware
 * [x] User profile CRUD (self + admin)
-* [ ] Pagination & filtering on user listing
-* [ ] Advanced search (later)
+* [x] **Unified pagination, filtering, and search on `/users`**
+* [ ] Advanced search scoring & analytics (later)
 
 ---
 
 ## ✅ Core Functional Areas (v1)
 
-| Area        | Description                             | Status |
-| ----------- | --------------------------------------- | ------ |
-| **Auth**    | JWT login, password hashing, validation | ✅ Done |
-| **Users**   | Profile view/update, admin management   | ✅ Done |
-| **Routing** | Modular handlers                        | ✅ Done |
+| Area        | Description                                                | Status |
+| ----------- | ---------------------------------------------------------- | ------ |
+| **Auth**    | JWT login, password hashing, validation                    | ✅ Done |
+| **Users**   | Profile view/update, admin management, list/search with ES | ✅ Done |
+| **Routing** | Modular handlers                                           | ✅ Done |
 
 ---
 
@@ -31,7 +31,7 @@ This version focuses on **core user features** only: authentication and user pro
 
 **Indexes**:
 
-* `users` – user profiles & credentials
+* `users` – user profiles, credentials, status, and metadata
 
 ---
 
@@ -53,13 +53,16 @@ This version focuses on **core user features** only: authentication and user pro
 ```
 social_media_backend/
 ├── app/
-│   ├── main.py              # Routing setup
+│   ├── main.py                # Routing setup
 │   ├── auth/
-│   │   └── handlers.py      # Register/Login + JWT middleware
+│   │   └── handlers.py        # Register/Login + JWT middleware
 │   ├── users/
-│   │   └── handlers.py      # Profile CRUD + admin tools
+│   │   └── handlers.py        # Profile CRUD + admin tools + unified list/search
 │   ├── services/
-│   │   └── es.py            # Elasticsearch client
+│   │   └── es.py              # Elasticsearch client
+│   ├── settings.py            # Config & constants
+├── scripts/
+│   └── create_users_index.py  # Create ES users index
 ├── .env.example
 ├── README.md
 ├── requirements.txt
@@ -71,34 +74,32 @@ social_media_backend/
 
 ### 1️⃣ Install Dependencies
 
-```bash
 pip install tornado elasticsearch pyjwt bcrypt python-dotenv
-```
+
 
 ### 2️⃣ Configure Environment
 
 cp .env.example .env
-# Edit:
+# Edit .env:
 # JWT_SECRET=your_secret
 # ES_URL=http://localhost:9200
-```
+
 
 ### 3️⃣ Run Elasticsearch (Docker)
 
 docker run -d --name es -p 9200:9200 \
   -e "discovery.type=single-node" \
   docker.elastic.co/elasticsearch/elasticsearch:8.8.0
-```
+
 
 ### 4️⃣ Create the Users Index
 
 python scripts/create_users_index.py
-```
 
 ### 5️⃣ Start Server
 
 python app/main.py
-```
+
 
 ---
 
@@ -114,8 +115,8 @@ python app/main.py
 * `GET /users/me` → get own profile
 * `PATCH /users/me` → update own profile
 * `DELETE /users/me` → deactivate account
-* `GET /users` → list users
-* `GET /users/<username>` → view user
+* `GET /users` → list or search users (pagination, active filter)
+* `GET /users/<username>` → view user profile
 * `PATCH /admin/users/<username>` → admin update
 * `DELETE /admin/users/<username>` → admin deactivate
 
@@ -123,10 +124,14 @@ python app/main.py
 
 ## 🏗️ Design Notes
 
-* **Small, clean codebase** to focus on learning
+* **Unified `/users` endpoint**:
+
+  * Without `q` → list users
+  * With `q` → search users (fuzzy, phrase prefix, scored)
+* **Consistent pagination** across list & search
 * **Stateless authentication** with JWT
 * **Async Tornado** for scalability
-* **Elasticsearch** for flexible search later
+* **Elasticsearch** for flexible search & filtering
 
 ---
 

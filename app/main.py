@@ -36,6 +36,7 @@ def make_app():
             (r"/admin/users/([a-z0-9_]{3,30})", AdminUserHandler),       
         ],
         debug=DEBUG,
+        xsrf_cookies=False
     )
 
 async def main():
