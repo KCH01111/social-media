@@ -10,7 +10,6 @@ load_dotenv()
 from app.handlers.auth import RegisterHandler, LoginHandler
 # Users
 from app.handlers.users_list import UsersListHandler
-from app.handlers.user_search import UserSearchHandler
 from app.handlers.admin_users import AdminUserHandler
 
 
@@ -33,9 +32,8 @@ def make_app():
             (r"/auth/login", LoginHandler),
 
             # Users
-            (r"/users", UsersListHandler),                               # GET list
-            (r"/users/search", UserSearchHandler),                       # GET search
-            (r"/admin/users/([a-z0-9_]{3,30})", AdminUserHandler),       # PATCH/DELETE admin
+            (r"/users", UsersListHandler),                              
+            (r"/admin/users/([a-z0-9_]{3,30})", AdminUserHandler),       
         ],
         debug=DEBUG,
     )
