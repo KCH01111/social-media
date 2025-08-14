@@ -18,15 +18,7 @@ from app.handlers.users import (
     UserDetailHandler,
     AdminUserHandler,
 )
-# Posts
-from app.handlers.posts import (
-    PostsListHandler,
-    PostsSearchHandler,
-    PostDetailHandler,
-    UpdatePostHandler,
-    DeletePostHandler,
-    CreatePostHandler,
-)
+
 
 PORT = int(os.environ.get("PORT", 8000))
 DEBUG = os.environ.get("DEBUG", "true").lower() == "true"
@@ -53,14 +45,6 @@ def make_app():
             (r"/users/([a-z0-9_]{3,30})/stats", UserStatsHandler),       # GET stats
             (r"/users/([a-z0-9_]{3,30})", UserDetailHandler),            # GET public profile
             (r"/admin/users/([a-z0-9_]{3,30})", AdminUserHandler),       # PATCH/DELETE admin
-
-            # Posts
-            (r"/posts", PostsListHandler),                               # GET list (non-deleted)
-            (r"/posts/search", PostsSearchHandler),                      # GET search
-            (r"/posts/create", CreatePostHandler),                       # POST create (alias for POST /posts)
-            (r"/posts/([A-Za-z0-9_-]+)", PostDetailHandler),             # GET by id
-            (r"/posts/([A-Za-z0-9_-]+)/update", UpdatePostHandler),      # PATCH by id (author only)
-            (r"/posts/([A-Za-z0-9_-]+)/delete", DeletePostHandler),      # DELETE by id (author/admin)
         ],
         debug=DEBUG,
     )
