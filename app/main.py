@@ -2,22 +2,16 @@
 import os
 import asyncio
 from dotenv import load_dotenv
+import tornado.web
 
 load_dotenv()
-
-import tornado.web
 
 # Auth
 from app.handlers.auth import RegisterHandler, LoginHandler
 # Users
-from app.handlers.users import (
-    UsersListHandler,
-    MeHandler,
-    UserSearchHandler,
-    UserStatsHandler,
-    UserDetailHandler,
-    AdminUserHandler,
-)
+from app.handlers.users_list import UsersListHandler
+from app.handlers.user_search import UserSearchHandler
+from app.handlers.admin_users import AdminUserHandler
 
 
 PORT = int(os.environ.get("PORT", 8000))
@@ -40,10 +34,7 @@ def make_app():
 
             # Users
             (r"/users", UsersListHandler),                               # GET list
-            (r"/users/me", MeHandler),                                   # GET/PATCH/DELETE self
             (r"/users/search", UserSearchHandler),                       # GET search
-            (r"/users/([a-z0-9_]{3,30})/stats", UserStatsHandler),       # GET stats
-            (r"/users/([a-z0-9_]{3,30})", UserDetailHandler),            # GET public profile
             (r"/admin/users/([a-z0-9_]{3,30})", AdminUserHandler),       # PATCH/DELETE admin
         ],
         debug=DEBUG,
