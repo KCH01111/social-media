@@ -35,6 +35,27 @@ This version focuses on **core user features**: authentication, user profiles, l
 
 ---
 
+## 🔑 Auth & Roles
+
+* On **login**, a JWT token is issued with the user’s `sub` (username).
+* Each request with `Authorization: Bearer <token>` is verified by the `@jwt_required` decorator.
+* **Roles are not stored in the token**. They are always looked up in Elasticsearch for security.
+* New users start with:
+
+  ```json
+  { "role": "user", "is_active": true }
+  ```
+* To promote a user to **admin**, update their ES document manually (or via future admin UI):
+
+  ```bash
+  curl -X POST "http://localhost:9200/users/_update/<username>" \
+    -H 'Content-Type: application/json' \
+    -d '{"doc": {"role": "admin"}}'
+  ```
+* Admin-only endpoints call `is_admin()`, which fetches the user from ES and enforces `role=admin`.
+
+---
+
 ## 🛠️ Tech Stack
 
 | Component      | Tool               |
@@ -89,12 +110,13 @@ cp .env.example .env
 
 docker run -d --name es -p 9200:9200 \
   -e "discovery.type=single-node" \
-  docker.elastic.co/elasticsearch/elasticsearch:8.8.0
-
+docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+```
 
 ### 4️⃣ Create the Users Index
 
 python scripts/create_users_index.py
+
 
 ### 5️⃣ Start Server
 
@@ -139,4 +161,4 @@ python app/main.py
 
 MIT License
 
----
+
