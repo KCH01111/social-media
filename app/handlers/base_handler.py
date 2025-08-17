@@ -3,7 +3,7 @@ import jwt
 import tornado.web
 from tornado.escape import json_decode
 from typing import Optional, Dict, Any
-from app.settings import HTTP_CONFIG, ERROR_MESSAGES, JWT_SECRET, JWT_CONFIG, ES_CONFIG
+from settings import HTTP_CONFIG, ERROR_MESSAGES, JWT_SECRET, JWT_CONFIG, ES_CONFIG
 
 logger = logging.getLogger(__name__)
 

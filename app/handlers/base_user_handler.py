@@ -1,4 +1,4 @@
-from app.handlers.base_handler import BaseHandler
+from handlers.base_handler import BaseHandler
 
 class BaseUserHandler(BaseHandler):
     def set_default_headers(self):

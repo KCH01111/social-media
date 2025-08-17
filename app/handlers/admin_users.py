@@ -3,12 +3,12 @@ import logging
 from urllib.parse import unquote
 import tornado.web
 from elasticsearch import NotFoundError
-from app.handlers.base_user_handler import BaseUserHandler
+from handlers.base_user_handler import BaseUserHandler
 from services.users import is_admin
 from services.es import es
 from services.es_io import es_io
 from services.auth import jwt_required
-from app.settings import USER_ROLES, ERROR_MESSAGES, ES_CONFIG
+from settings import USER_ROLES, ERROR_MESSAGES, ES_CONFIG
 
 logger = logging.getLogger(__name__)
 

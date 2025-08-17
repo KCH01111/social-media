@@ -7,10 +7,10 @@ import tornado.web
 load_dotenv()
 
 # Auth
-from app.handlers.auth import RegisterHandler, LoginHandler
+from handlers.auth import RegisterHandler, LoginHandler
 # Users
-from app.handlers.users_list import UsersListHandler
-from app.handlers.admin_users import AdminUserHandler
+from handlers.users_list import UsersListHandler
+from handlers.admin_users import AdminUserHandler
 
 
 PORT = int(os.environ.get("PORT", 8000))

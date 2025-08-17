@@ -1,5 +1,5 @@
 from typing import Dict, Any, Optional
-from app.settings import USER_PROFILE_CONFIG, USER_STATS_DEFAULTS, ES_CONFIG
+from settings import USER_PROFILE_CONFIG, USER_STATS_DEFAULTS, ES_CONFIG
 from services.es_io import es_io
 from services.es import es
 

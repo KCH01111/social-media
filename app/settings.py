@@ -4,7 +4,7 @@ import re
 from typing import Dict, Any
 
 # ===================== JWT =====================
-JWT_SECRET = os.getenv("JWT_SECRET")
+JWT_SECRET = os.getenv("JWT_SECRET","YourSuperSecretKeyHere_MustBe32CharsOrMore")
 if not JWT_SECRET:
     raise ValueError("JWT_SECRET environment variable is required")
 

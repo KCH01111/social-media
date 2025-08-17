@@ -2,11 +2,11 @@ import logging
 import bcrypt
 import tornado.web
 from elasticsearch import ConflictError
-from app.handlers.base_handler import BaseHandler
+from handlers.base_handler import BaseHandler
 from services.es import es
 from services.es_io import es_io, cpu_io
 from services.auth import validate_credentials_format, generate_jwt_token
-from app.settings import PASSWORD_CONFIG, ES_CONFIG, ERROR_MESSAGES
+from settings import PASSWORD_CONFIG, ES_CONFIG, ERROR_MESSAGES
 
 logger = logging.getLogger(__name__)
 

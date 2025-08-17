@@ -1,7 +1,7 @@
 import datetime
 from functools import wraps
 import tornado.web
-from app.settings import JWT_SECRET, JWT_CONFIG, PASSWORD_CONFIG, USERNAME_CONFIG, ERROR_MESSAGES
+from settings import JWT_SECRET, JWT_CONFIG, PASSWORD_CONFIG, USERNAME_CONFIG, ERROR_MESSAGES
 import jwt
 
 def validate_credentials_format(username: str, password: str):

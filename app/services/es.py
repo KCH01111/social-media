@@ -15,6 +15,3 @@ if ES_USER and ES_PASS:
 else:
     es = Elasticsearch(ES_HOST)
 
-# Optional: ping to check connection
-if not es.ping():
-    raise RuntimeError(f"Cannot connect to Elasticsearch at {ES_HOST}")
